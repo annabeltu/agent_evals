@@ -111,7 +111,11 @@ def test_run_quotes_instruction_and_forwards_model_and_environment(
     ) -> ExecResult:
         seen.append(shlex.split(command))
         assert "explicit-override" not in command
-        assert env == {"EXAMPLE_API_KEY": "explicit-override", "OTHER_SETTING": "preserved"}
+        assert env == {
+            "EXAMPLE_API_KEY": "explicit-override",
+            "OTHER_SETTING": "preserved",
+            "AGENTS590_ATIF_PATH": "/logs/agent/trajectory.json",
+        }
         assert cwd == "/app"
         return ExecResult(return_code=0, stdout="agent result\n", stderr="")
 
@@ -131,7 +135,7 @@ def test_run_quotes_instruction_and_forwards_model_and_environment(
         ]
     ]
     assert (agent.logs_dir / "stdout.txt").read_text() == "agent result\n"
-    assert context.metadata == {"agent": "another-agent"}
+    assert context.metadata is None
 
 
 def test_missing_package_fails_before_environment_setup(tmp_path: Path) -> None:

@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = []
+
+[metadata]
+category = "software-engineering"
+tags = ["python", "input-validation"]
+difficulty = "easy"
+
+[verifier]
+timeout_sec = 30.0
+collect = []
+
+[verifier.env]
+
+[agent]
+timeout_sec = 120.0
+
+[environment]
+network_mode = "public"
+build_timeout_sec = 300.0
+cpus = 1
+memory_mb = 512
+storage_mb = 1024
+os = "linux"
+mcp_servers = []
+
+[environment.env]
+
+[solution.env]

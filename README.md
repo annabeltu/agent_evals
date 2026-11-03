@@ -146,6 +146,19 @@ renaming Python variables while preserving dictionary keys and behavior.
 with the next unused version number. Browse [`tasks/`](tasks/) for the full
 collection; the runners discover additional tasks automatically.
 
+`tasks/yitsui_add-input-validation/` is Charlotte's input-validation task: add type
+checks to `add()` while preserving valid addition. It accepts integers and
+floats, rejects booleans and other types with `TypeError`, and grades behavior
+with pytest. Validate it without model calls:
+
+```sh
+make oracle TASKS=yitsui_add-input-validation
+make baseline TASKS=yitsui_add-input-validation
+```
+
+Expect oracle reward **1** and baseline reward **0**. Without `TASKS`, these
+targets run all tasks under `tasks/`.
+
 Each task has instructions, `task.toml`, an environment image, a reference
 solution, and a pytest verifier. Read
 [Authoring a Harbor eval task](docs/authoring-tasks.md) for local examples.

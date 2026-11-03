@@ -19,6 +19,7 @@ from harbor.models.trajectories.observation_result import ObservationResult
 from harbor.models.trajectories.step import Step
 from harbor.models.trajectories.tool_call import ToolCall
 from harbor.models.trajectories.trajectory import Trajectory
+from harbor.models.trajectories import Trajectory
 from pydantic import Field
 
 _INSTALL_DIR = "/installed-agent/agents590"
@@ -191,6 +192,30 @@ class LocalCliAgent(BaseInstalledAgent):
             timeout_sec=300,
         )
 
+    def populate_context_post_run(self, context: AgentContext) -> None:
+        """Backfill Harbor's final token summary from the synced ATIF file.
+
+        ``logs_dir`` is the host-side copy of the container's ``/logs/agent``
+        directory. Read the trajectory only after Harbor has synced that
+        directory so totals include every intermediate Responses API step, not
+        just the final model response.
+        """
+        trajectory_path = self.logs_dir / "trajectory.json"
+        try:
+            trajectory = Trajectory.model_validate_json(trajectory_path.read_text())
+        except (OSError, UnicodeError, ValueError):
+            self.logger.debug("No valid ATIF trajectory at %s", trajectory_path)
+            return
+
+        metrics = trajectory.final_metrics
+        if metrics is None:
+            return
+        context.n_input_tokens = metrics.total_prompt_tokens or 0
+        context.n_cache_tokens = metrics.total_cached_tokens or 0
+        context.n_output_tokens = metrics.total_completion_tokens or 0
+        context.cost_usd = metrics.total_cost_usd
+        context.metadata = {"agent": self.options.agent}
+
     async def run(
         self, instruction: str, environment: BaseEnvironment, context: AgentContext
     ) -> None:
@@ -206,6 +231,12 @@ class LocalCliAgent(BaseInstalledAgent):
                 key: value for key, value in dotenv_values(env_file).items() if value is not None
             }
         env.update(self.extra_env)
+        # The standalone agents590 loop records ATIF inside the task container.
+        # Pass the exact Harbor log path explicitly rather than relying on the
+        # agent's cwd or on /logs/agent being discoverable. Harbor syncs this
+        # file into the trial result and derives the final model summary from
+        # the per-response metrics on its steps.
+        env["AGENTS590_ATIF_PATH"] = str(self.environment_logs_dir / "trajectory.json")
         result = await self.exec_as_agent(
             environment,
             command=shlex.join(command),
