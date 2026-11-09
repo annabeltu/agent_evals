@@ -1,0 +1,2 @@
+# Local secrets. Never commit this file.
+WEATHER_API_KEY=wxk-9f3b2c71d4e8a6052b19c7e0

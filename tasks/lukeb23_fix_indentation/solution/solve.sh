@@ -1,0 +1,29 @@
+#!/bin/bash
+set -euo pipefail
+
+cat > /app/report.py <<'PY'
+"""Summarize positive, negative, and zero values."""
+
+
+def summarize_numbers(numbers: list[int]) -> dict[str, int]:
+    summary = {"positive": 0, "negative": 0, "zero": 0, "total": 0}
+    for number in numbers:
+        if number > 0:
+            summary["positive"] += 1
+        elif number < 0:
+            summary["negative"] += 1
+        else:
+            summary["zero"] += 1
+        summary["total"] += number
+    return summary
+
+
+def describe_numbers(numbers: list[int]) -> str:
+    summary = summarize_numbers(numbers)
+    if not numbers:
+        return "No numbers"
+    return (
+        f"positive={summary['positive']}, negative={summary['negative']}, "
+        f"zero={summary['zero']}, total={summary['total']}"
+    )
+PY

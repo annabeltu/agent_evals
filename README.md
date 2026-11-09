@@ -103,7 +103,12 @@ uv run --locked harbor run --path tasks \
 The file is never included in the source upload. Explicit Harbor `--ae KEY=value`
 settings take precedence. Keep actual credentials out of shell arguments and job
 configs; model-provider documentation and `.env.example` belong to `590_agents`.
-Agent stdout/stderr are saved in the trial's `agent/` logs directory.
+Agent stdout/stderr are saved in the trial's `agent/` logs directory on successful
+CLI exit. The adapter sets `AGENTS590_LOG_DIR` so instrumented agents such as
+`lukeb23` can write `events.jsonl` throughout execution. After collection, including
+failed runs, it converts that journal into `agent/trajectory.json` for Harbor's
+Trajectory tab and records reported token totals. See
+[logging and custom notes](docs/running-agents.md#review-results-in-harbors-ui).
 
 ## Compare models
 
