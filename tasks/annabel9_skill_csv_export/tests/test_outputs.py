@@ -47,9 +47,6 @@ def test_public_signature_is_preserved():
 def test_uses_csv_module():
     tree = ast.parse(inspect.getsource(exporter))
     assert any(
-        isinstance(node, ast.Import)
-        and any(alias.name == "csv" for alias in node.names)
+        isinstance(node, ast.Import) and any(alias.name == "csv" for alias in node.names)
         for node in tree.body
-    ) or any(
-        isinstance(node, ast.ImportFrom) and node.module == "csv" for node in tree.body
-    )
+    ) or any(isinstance(node, ast.ImportFrom) and node.module == "csv" for node in tree.body)
