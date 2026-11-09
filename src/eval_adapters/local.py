@@ -19,7 +19,6 @@ from harbor.models.trajectories.observation_result import ObservationResult
 from harbor.models.trajectories.step import Step
 from harbor.models.trajectories.tool_call import ToolCall
 from harbor.models.trajectories.trajectory import Trajectory
-from harbor.models.trajectories import Trajectory
 from pydantic import Field
 
 _INSTALL_DIR = "/installed-agent/agents590"
@@ -58,6 +57,7 @@ def stage_package(package_path: Path, destination: Path) -> None:
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".env", ".env.*"),
     )
 
+
 def parse_agent_events(output: str) -> list[dict]:
     events = []
 
@@ -79,15 +79,18 @@ def build_trajectory(events: list[dict], agent_name: str, model_name: str | None
         data = event["data"]
 
         if kind == "model_request":
-            steps.append(Step(
-                step_id=len(steps) + 1,
-                source="agent",
-                message=str(data.get("messages", [])[-1].get(
-                    "output",
-                    data.get("messages", [])[-1].get("content", "")
-                )),
-                extra={"request": data},
-            ))
+            steps.append(
+                Step(
+                    step_id=len(steps) + 1,
+                    source="agent",
+                    message=str(
+                        data.get("messages", [])[-1].get(
+                            "output", data.get("messages", [])[-1].get("content", "")
+                        )
+                    ),
+                    extra={"request": data},
+                )
+            )
 
         elif kind == "model_response":
             prompt = data.get("input_tokens")
@@ -96,35 +99,42 @@ def build_trajectory(events: list[dict], agent_name: str, model_name: str | None
             input_tokens += prompt or 0
             output_tokens += completion or 0
 
-            steps.append(Step(
-                step_id=len(steps) + 1,
-                source="agent",
-                model_name=model_name,
-                message="\n".join(
-                    part.get("text", "")
-                    for item in data.get("output", [])
-                    if item.get("type") == "message"
-                    for part in item.get("content", [])
-                    if part.get("type") == "output_text"
-                ) or "Model requested a tool or continued processing",
-                metrics=Metrics(
-                    prompt_tokens=prompt,
-                    completion_tokens=completion,
-                    cached_tokens=data.get("cached_tokens"),
-                ),
-            ))
+            steps.append(
+                Step(
+                    step_id=len(steps) + 1,
+                    source="agent",
+                    model_name=model_name,
+                    message="\n".join(
+                        part.get("text", "")
+                        for item in data.get("output", [])
+                        if item.get("type") == "message"
+                        for part in item.get("content", [])
+                        if part.get("type") == "output_text"
+                    )
+                    or "Model requested a tool or continued processing",
+                    metrics=Metrics(
+                        prompt_tokens=prompt,
+                        completion_tokens=completion,
+                        cached_tokens=data.get("cached_tokens"),
+                    ),
+                )
+            )
 
         elif kind == "tool_call":
-            steps.append(Step(
-                step_id=len(steps) + 1,
-                source="agent",
-                message=data["arguments"].get("command", "Shell command"),
-                tool_calls=[ToolCall(
-                    tool_call_id=data["call_id"],
-                    function_name=data.get("name", "run_command"),
-                    arguments=data["arguments"],
-                )],
-            ))
+            steps.append(
+                Step(
+                    step_id=len(steps) + 1,
+                    source="agent",
+                    message=data["arguments"].get("command", "Shell command"),
+                    tool_calls=[
+                        ToolCall(
+                            tool_call_id=data["call_id"],
+                            function_name=data.get("name", "run_command"),
+                            arguments=data["arguments"],
+                        )
+                    ],
+                )
+            )
 
         elif kind == "tool_result":
             for step in reversed(steps):
@@ -154,7 +164,7 @@ def build_trajectory(events: list[dict], agent_name: str, model_name: str | None
             total_steps=len(steps),
         ),
     )
-            
+
 
 class LocalCliAgent(BaseInstalledAgent):
     """A generic evaluation adapter; the sibling package owns all agent behavior."""

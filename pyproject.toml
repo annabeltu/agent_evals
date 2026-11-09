@@ -36,6 +36,10 @@ pythonVersion = "3.12"
 typeCheckingMode = "standard"
 venvPath = "."
 venv = ".venv"
+executionEnvironments = [
+    { root = "tasks/annabel9_hidden_instructions", extraPaths = ["tasks/annabel9_hidden_instructions/environment"] },
+    { root = "." },
+]
 
 [tool.pytest.ini_options]
 # Task verifiers depend on the sandbox filesystem and run through Harbor.

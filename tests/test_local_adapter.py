@@ -135,7 +135,7 @@ def test_run_quotes_instruction_and_forwards_model_and_environment(
         ]
     ]
     assert (agent.logs_dir / "stdout.txt").read_text() == "agent result\n"
-    assert context.metadata is None
+    assert context.metadata == {"agent": "another-agent"}
 
 
 def test_missing_package_fails_before_environment_setup(tmp_path: Path) -> None:
