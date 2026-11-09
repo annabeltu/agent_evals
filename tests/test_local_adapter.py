@@ -114,6 +114,7 @@ def test_run_quotes_instruction_and_forwards_model_and_environment(
         assert env == {
             "EXAMPLE_API_KEY": "explicit-override",
             "OTHER_SETTING": "preserved",
+            "AGENTS590_LOG_DIR": "/logs/agent",
             "AGENTS590_ATIF_PATH": "/logs/agent/trajectory.json",
         }
         assert cwd == "/app"
@@ -135,7 +136,9 @@ def test_run_quotes_instruction_and_forwards_model_and_environment(
         ]
     ]
     assert (agent.logs_dir / "stdout.txt").read_text() == "agent result\n"
-    assert context.metadata is None
+    assert context.is_empty()
+    agent.populate_context_post_run(context)
+    assert context.metadata == {"agent": "another-agent"}
 
 
 def test_missing_package_fails_before_environment_setup(tmp_path: Path) -> None:
