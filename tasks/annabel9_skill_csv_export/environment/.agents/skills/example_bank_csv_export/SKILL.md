@@ -1,5 +1,7 @@
+---
 name: example-bank-csv-export
 description: Use this skill when implementing transaction CSV exports using Example Bank's specialized CSV format.
+---
 
 # Example Bank CSV Export Skill
 
